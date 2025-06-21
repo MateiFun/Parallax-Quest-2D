@@ -1,10 +1,8 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Disable blurring on pixel art
 ctx.imageSmoothingEnabled = false;
 
-// Resize canvas to fit screen
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -12,25 +10,31 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
-// World dimensions
-const WORLD_WIDTH = 3000;
-const WORLD_HEIGHT = 3000;
+// === Zoom constant ===
+const ZOOM = 1.5;  // Change this to zoom in/out (1 = normal)
+
+// Load background image
+const backgroundImg = new Image();
+backgroundImg.src = "Backgrounds/StartingArea.jpg";
+
+// Match background dimensions
+const WORLD_WIDTH = 3028;
+const WORLD_HEIGHT = 2088;
 
 // Input
 const keys = {};
 document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// Player setup
+// Player setup with fixed spawn point
 const player = {
-  x: 1500,
-  y: 1500,
-  width: 180,    // Scale size here
-  height: 180,
-  speed: 500    // pixels per second
+  x: 1700,
+  y: 2000,
+  width: 80,
+  height: 80,
+  speed: 200
 };
 
-// Track direction for flipping
 let facingLeft = false;
 
 // Load walk frames
@@ -45,20 +49,10 @@ let currentFrame = 0;
 let frameTimer = 0;
 const FRAME_DURATION = 0.15;
 
-// Random houses
-const houses = [];
-for (let i = 0; i < 50; i++) {
-  houses.push({
-    x: Math.random() * (WORLD_WIDTH - 100),
-    y: Math.random() * (WORLD_HEIGHT - 100),
-    width: 80,
-    height: 80,
-    color: "darkred"
-  });
-}
-
 function update(deltaTime) {
-  const velocity = player.speed * deltaTime;
+  const isSprinting = keys["shift"];
+  const sprintMultiplier = isSprinting ? 2 : 1;
+  const velocity = player.speed * sprintMultiplier * deltaTime;
   let moved = false;
 
   if (keys["w"]) {
@@ -80,14 +74,13 @@ function update(deltaTime) {
     facingLeft = false;
   }
 
-  // Clamp to world
   player.x = Math.max(0, Math.min(WORLD_WIDTH - player.width, player.x));
   player.y = Math.max(0, Math.min(WORLD_HEIGHT - player.height, player.y));
 
-  // Animate if moved
   if (moved) {
+    const frameDuration = isSprinting ? FRAME_DURATION / 2 : FRAME_DURATION;
     frameTimer += deltaTime;
-    if (frameTimer >= FRAME_DURATION) {
+    if (frameTimer >= frameDuration) {
       frameTimer = 0;
       currentFrame = (currentFrame + 1) % walkFrames.length;
     }
@@ -98,28 +91,30 @@ function update(deltaTime) {
 
 function getCamera() {
   const camX = Math.max(0, Math.min(
-    player.x + player.width / 2 - canvas.width / 2,
-    WORLD_WIDTH - canvas.width
+    player.x + player.width / 2 - (canvas.width / (2 * ZOOM)),
+    WORLD_WIDTH - canvas.width / ZOOM
   ));
   const camY = Math.max(0, Math.min(
-    player.y + player.height / 2 - canvas.height / 2,
-    WORLD_HEIGHT - canvas.height
+    player.y + player.height / 2 - (canvas.height / (2 * ZOOM)),
+    WORLD_HEIGHT - canvas.height / ZOOM
   ));
   return { x: camX, y: camY };
 }
 
 function drawWorld(camera) {
-  // Grass background
-  ctx.fillStyle = "#2b6";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Houses
-  for (const house of houses) {
-    ctx.fillStyle = house.color;
-    ctx.fillRect(house.x - camera.x, house.y - camera.y, house.width, house.height);
-  }
+  ctx.scale(ZOOM, ZOOM);
 
-  // Player sprite
+  ctx.drawImage(
+    backgroundImg,
+    camera.x, camera.y,
+    canvas.width / ZOOM, canvas.height / ZOOM,
+    0, 0,
+    canvas.width / ZOOM, canvas.height / ZOOM
+  );
+
   const frame = walkFrames[currentFrame];
   const drawX = player.x - camera.x;
   const drawY = player.y - camera.y;
@@ -138,12 +133,14 @@ function drawWorld(camera) {
     ctx.fillStyle = "cyan";
     ctx.fillRect(drawX, drawY, player.width, player.height);
   }
+
+  ctx.restore();
 }
 
 function drawUI() {
   ctx.fillStyle = "white";
   ctx.font = "16px monospace";
-  ctx.fillText("Use WASD to move", 20, 30);
+  //ctx.fillText("Use WASD to move, hold Shift to sprint", 20, 30);
 }
 
 let lastTime = performance.now();
@@ -159,4 +156,6 @@ function gameLoop(time) {
   requestAnimationFrame(gameLoop);
 }
 
-requestAnimationFrame(gameLoop);
+backgroundImg.onload = () => {
+  requestAnimationFrame(gameLoop);
+};
