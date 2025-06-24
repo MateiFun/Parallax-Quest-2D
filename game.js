@@ -13,6 +13,15 @@ resizeCanvas();
 // === Zoom constant ===
 const ZOOM = 1.5;
 
+const inventory = [];
+
+function addItemToInventory(item) {
+  if (!inventory.includes(item)) {
+    inventory.push(item);
+    console.log(`Picked up: ${item}`);
+  }
+}
+
 // === Exclamation Animation ===
 const exclamationFrames = [];
 for (let i = 1; i <= 4; i++) {
@@ -34,10 +43,10 @@ const areas = {
     worldWidth: 3028,
     worldHeight: 2088,
     collisionBoxes: [
-      { x: 460, y: 1930, width: 1150, height: 40 },
+      { x: 460, y: 1925, width: 1150, height: 45 },
       { x: 1415, y: 1950, width: 40, height: 150 },
       { x: 1160, y: 1680, width: 460, height: 140 },
-      { x: 1780, y: 1930, width: 870, height: 40 },
+      { x: 1780, y: 1920, width: 870, height: 50 },
       { x: 1770, y: 1680, width: 570, height: 140 },
       { x: 1210, y: 1820, width: 140, height: 140 },
       { x: 1210, y: 1630, width: 292, height: 50 },
@@ -49,7 +58,7 @@ const areas = {
       { x: 1015, y: 1590, width: 23, height: 487 },
       { x: 525, y: 1590, width: 23, height: 487 },
       { x: 856, y: 1589, width: 220, height: 28 },
-      { x: 483, y: 935, width: 40, height: 728 },
+      { x: 483, y: 959, width: 40, height: 728 }, 
       { x: 505, y: 959, width: 116, height: 28 },
       { x: 795, y: 959, width: 116, height: 28 },
       { x: 815, y: 959, width: 106, height: 166 },
@@ -57,22 +66,52 @@ const areas = {
       { x: 525, y: 1589, width: 240, height: 28 },
       { x: 895, y: 1310, width: 180, height: 43 },
       { x: 893, y: 1089, width: 28, height: 264 },
-      { x: 830, y: 1270, width: 40, height: 35 },
+      { x: 820, y: 1270, width: 60, height: 45 }, //
       { x: 1045, y: 1310, width: 50, height: 67 },
       { x: 899, y: 1270, width: 710, height: 34 },
       { x: 1785, y: 1270, width: 555, height: 34 },
       { x: 2095, y: 1210, width: 145, height: 254 },
       { x: 2463, y: 1270, width: 355, height: 34 },
-      { x: 1823, y: 1300, width: 355, height: 64 }
+      { x: 1823, y: 1300, width: 355, height: 64 }, //done
+      { x: 1051, y: 822, width: 248, height: 214 },//done
+      { x: 1291, y: 822, width: 60, height: 164 }, //done
+      { x: 183, y: 959, width: 340, height: 64 }, //done
+      { x: 636, y: 1782, width: 25, height: 25 }, //done
+      { x: 744, y: 1689, width: 26, height: 21 },
+      { x: 1823, y: 1300, width: 355, height: 64 },
+      { x: 1823, y: 1300, width: 355, height: 64 },
+      { x: 1823, y: 1300, width: 355, height: 64 },
+      { x: 1823, y: 1300, width: 355, height: 64 },
+      { x: 1823, y: 1300, width: 355, height: 64 },
+      { x: 1823, y: 1300, width: 355, height: 64 },
+
     ],
     sprites: [
       {
-      src: "Backgrounds/StartingAreaAddedSprites/CastelTest.png", // path to the image
-      x: 1200,
-      y: 1100,
-      width: 601,
-      height: 178
-      }
+      src: "Backgrounds/StartingAreaAddedSprites/Castle/CastleWallLeftFirst.png", // path to the image
+      x: 1032,
+      y: 1827,
+      width: 579,
+      height: 99,
+      layer: "front" // change to "back" if it should go behind the player
+      },
+      {
+      src: "Backgrounds/StartingAreaAddedSprites/Trees/LeftTreeBegining.png", // path to the image
+      x: 1323,
+      y: 1892,
+      width: 203,
+      height: 196,
+      layer: "front" // change to "back" if it should go behind the player
+      },
+      {
+      src: "Backgrounds/StartingAreaAddedSprites/Castle/CastleWallRightFirst.png", // path to the image
+      x: 1779,
+      y: 1821,
+      width: 880,
+      height: 99,
+      layer: "front" // change to "back" if it should go behind the player
+      },
+      
     ],
     doors: [
       {
@@ -84,7 +123,33 @@ const areas = {
         targetSpawn: { x: 340, y: 550 },
         doorBack: true
       }
-    ]
+    ],
+    interactables: [
+  {
+    x: 1300,
+    y: 1600,
+    width: 60,
+    height: 60,
+    action: () => {
+      addItemToInventory("Old Key");
+    },
+    once: true,
+    picked: false,
+    label: "Glowing Chest"
+  },
+  {
+    x: 1250,
+    y: 1600,
+    width: 40,
+    height: 60,
+    action: () => {
+      alert("It's a dusty bookshelf. Nothing interesting here.");
+    },
+    once: false,
+    label: "Bookshelf"
+  }
+]
+
   },
   houseInterior1: {
     name: "houseInterior1",
@@ -109,6 +174,9 @@ const areas = {
         targetSpawn: { x: 1127, y: 1000 },
         doorBack: true
       }
+    ],
+    interactables: [
+
     ]
   }
 };
@@ -163,7 +231,27 @@ function loadArea(areaName, spawn) {
   backgroundImg.src = currentArea.backgroundSrc;
   player.x = spawn.x;
   player.y = spawn.y;
+
+  loadSpritesForArea(currentArea);
 }
+
+
+
+function loadSpritesForArea(area) {
+  area.loadedSprites = [];
+
+  for (const spr of area.sprites) {
+    const img = new Image();
+    img.src = spr.src;
+    area.loadedSprites.push({
+      ...spr,
+      image: img
+    });
+  }
+}
+
+
+
 
 backgroundImg.onload = () => {
   if (walkFramesLoaded === 4) {
@@ -214,6 +302,18 @@ function update(deltaTime) {
       }
     }
   }
+  // === Interactables ===
+  for (const obj of currentArea.interactables || []) {
+    const playerBox = { x: player.x + 30, y: player.y + 50, width: player.width - 60, height: player.height - 50 };
+    if (isColliding(playerBox, obj) && (!obj.once || !obj.picked)) {
+      nearInteractable = true;
+      if (keys["e"]) {
+        obj.action();
+        if (obj.once) obj.picked = true;
+        break;
+      }
+    }
+  }
 
   if (nearInteractable) {
     exclamationTimer += deltaTime;
@@ -248,7 +348,7 @@ function drawWorld(camera) {
     0, 0,
     canvas.width / ZOOM, canvas.height / ZOOM
   );
-
+  
   // for (const box of currentArea.collisionBoxes) {
   //   ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
   //   ctx.fillRect(box.x - camera.x, box.y - camera.y, box.width, box.height);
@@ -259,6 +359,26 @@ function drawWorld(camera) {
   //   ctx.fillRect(door.x - camera.x, door.y - camera.y, door.width, door.height);
   // }
 
+  // // Draw interactables
+  // for (const obj of currentArea.interactables || []) {
+  //   if (!obj.once || !obj.picked) {
+  //     ctx.fillStyle = "rgba(0, 255, 0, 0.3)";
+  //     ctx.fillRect(obj.x - camera.x, obj.y - camera.y, obj.width, obj.height);
+  //   }
+  // }
+
+  // Draw sprites behind player
+  for (const spr of currentArea.loadedSprites) {
+    if (spr.layer === "back" && spr.image.complete) {
+      ctx.drawImage(
+        spr.image,
+        spr.x - camera.x,
+        spr.y - camera.y,
+        spr.width,
+        spr.height
+      );
+    }
+  }
 
   const frame = walkFrames[currentFrame];
   const drawX = player.x - camera.x;
@@ -274,7 +394,18 @@ function drawWorld(camera) {
   ctx.restore();
 
 
-
+  // Draw sprites in front of player
+  for (const spr of currentArea.loadedSprites) {
+    if (spr.layer === "front" && spr.image.complete) {
+      ctx.drawImage(
+        spr.image,
+        spr.x - camera.x,
+        spr.y - camera.y,
+        spr.width,
+        spr.height
+      );
+    }
+  }
 
 
   if (nearInteractable) {
@@ -295,7 +426,8 @@ function drawWorld(camera) {
 function drawUI() {
   ctx.fillStyle = "white";
   ctx.font = "16px monospace";
-  // Add UI text here
+
+
 }
 
 let lastTime = performance.now();
